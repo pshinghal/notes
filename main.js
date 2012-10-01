@@ -1,6 +1,9 @@
-function main() {
+//PARA: visualizer (a constructed object)
+function main(visualizer) {
 	var audioContext = new webkitAudioContext();
 	var xhr = new XMLHttpRequest();
+
+	window.thingy = audioContext;
 
 	var analyser = null; //audioContext.createAnalyser();
 	var sourceNode = null; //audioContext.createBufferSource();
@@ -8,11 +11,34 @@ function main() {
 	var timerNode = null;
 	window.framesAnalysed = 0;
 	window.framesData = [];
+	window.viz = visualizer;
 
 	var BUFFER_SIZE = 2048;
-	var MIDDLE_C_SCALE_MP3 = "sounds/middleCScale.mp3";
+	var MIDDLE_C_SCALE_MP3 = "sounds/middleCScale48khz.mp3";
 
 	var soundUrl = MIDDLE_C_SCALE_MP3;
+
+	function startRender(data, timeGap) {
+		console.log("Started rendering");
+		var index = 0;
+		function renderFrame() {
+			if (!data[index]) {
+				return;
+			}
+			console.log("Rendering " + index);
+			visualizer.clear();
+			visualizer.render(data[index]);
+			index += 1;
+			setTimeout(renderFrame, timeGap);
+		}
+		renderFrame();
+	}
+
+	function renderOneFrame(data) {
+		console.log("Rendering");
+		visualizer.clear();
+		visualizer.render(data);
+	}
 
 	function stopProcessing() {
 		console.log("Stopping processes");
@@ -24,6 +50,8 @@ function main() {
 		console.log("Disconnected timer");
 		analyser.disconnect();
 		console.log("Disconnected analyser");
+
+		// startRender(window.framesData, 100);
 	}
 
 	function startAudio() {
@@ -35,7 +63,8 @@ function main() {
 	function analyseAudio() {
 		var freqByteData = new Uint8Array(analyser.frequencyBinCount);
 		analyser.getByteFrequencyData(freqByteData);
-		window.framesData.push(JSON.stringify(freqByteData));
+		window.framesData.push(freqByteData);
+		renderOneFrame(freqByteData);
 		window.framesAnalysed += 1;
 	}
 
