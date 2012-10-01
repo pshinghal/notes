@@ -62,7 +62,9 @@ function main(visualizer) {
 
 	function analyseAudio() {
 		var freqByteData = new Uint8Array(analyser.frequencyBinCount);
+		//var freqByteData = new Float32Array(analyser.frequencyBinCount);
 		analyser.getByteFrequencyData(freqByteData);
+		//analyser.getFloatFrequencyData(freqByteData);
 		window.framesData.push(freqByteData);
 		renderOneFrame(freqByteData);
 		window.framesAnalysed += 1;
@@ -82,7 +84,7 @@ function main(visualizer) {
 		analyser.connect(timerNode);
 		timerNode.connect(audioContext.destination);
 		console.log("Architecture built");
-
+		analyser.fftSize = BUFFER_SIZE;
 		startAudio();
 	}
 
