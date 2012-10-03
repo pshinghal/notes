@@ -15,8 +15,9 @@ function main(visualizer) {
 
 	var BUFFER_SIZE = 2048;
 	var MIDDLE_C_SCALE_MP3 = "sounds/middleCScale48khz.mp3";
-
-	var soundUrl = MIDDLE_C_SCALE_MP3;
+	var SCHUMANN_LOTUS_FLOWER_MP3 = "http://localhost/schumannLotusFlower.mp3";
+	var ADJUSTED_MIDDLE_C_SCALE_MP3 = "http://localhost/adjustedMiddleCScale.mp3";
+	var soundUrl = ADJUSTED_MIDDLE_C_SCALE_MP3;
 
 	function startRender(data, timeGap) {
 		console.log("Started rendering");

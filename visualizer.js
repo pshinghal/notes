@@ -6,8 +6,14 @@ function createVisualizer(canvasId) {
 
 	var canvasWidth = 1024;
 	var canvasHeight = 256;
-	var barWidth = 1;
+	var barWidth = 3;
 	var maxBarHeight = 255;
+
+	var colors = [];
+	colors.push("rgb(0, 46, 184)");
+	colors.push("rgb(245, 184, 0)");
+	//colors.push("rgb(255, 255, 0)");
+	//colors.push("rgb(0, 0, 255)");
 
 	visInterface.clear = function () {
 		ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -16,7 +22,9 @@ function createVisualizer(canvasId) {
 	visInterface.render = function (byteArray) {
 		var i;
 		for (i = 0; i < byteArray.length; i += 1) {
-			ctx.fillRect(i, canvasHeight - byteArray[i], barWidth, byteArray[i]);
+			ctx.fillStyle = colors[i % colors.length];
+			ctx.fillRect(i * barWidth, canvasHeight - byteArray[i], barWidth, byteArray[i]);
+			//ctx.fillRect(i, canvasHeight - byteArray[i], barWidth, 1);
 		}
 	};
 
