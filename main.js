@@ -15,7 +15,7 @@ function main(visualizer) {
 
 	var BUFFER_SIZE = 2048;
 	var MIDDLE_C_SCALE_MP3 = "sounds/middleCScale48khz.mp3";
-	var SCHUMANN_LOTUS_FLOWER_MP3 = "http://localhost/schumannLotusFlower.mp3";
+	var SCHUMANN_LOTUS_FLOWER_MP3 = "/schumannLotusFlower.mp3";
 	var ADJUSTED_MIDDLE_C_SCALE_MP3 = "http://localhost/adjustedMiddleCScale.mp3";
 	var soundUrl = ADJUSTED_MIDDLE_C_SCALE_MP3;
 
@@ -62,10 +62,10 @@ function main(visualizer) {
 	}
 
 	function analyseAudio() {
-		var freqByteData = new Uint8Array(analyser.frequencyBinCount);
-		//var freqByteData = new Float32Array(analyser.frequencyBinCount);
-		analyser.getByteFrequencyData(freqByteData);
-		//analyser.getFloatFrequencyData(freqByteData);
+		//var freqByteData = new Uint8Array(analyser.frequencyBinCount);
+		var freqByteData = new Float32Array(analyser.frequencyBinCount);
+		//analyser.getByteFrequencyData(freqByteData);
+		analyser.getFloatFrequencyData(freqByteData);
 		window.framesData.push(freqByteData);
 		renderOneFrame(freqByteData);
 		window.framesAnalysed += 1;
@@ -85,7 +85,7 @@ function main(visualizer) {
 		analyser.connect(timerNode);
 		timerNode.connect(audioContext.destination);
 		console.log("Architecture built");
-		analyser.fftSize = BUFFER_SIZE;
+		analyser.fftSize = 2048;
 		startAudio();
 	}
 

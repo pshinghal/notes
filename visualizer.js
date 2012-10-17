@@ -20,10 +20,11 @@ function createVisualizer(canvasId) {
 	};
 
 	visInterface.render = function (byteArray) {
-		var i;
+		var i, height;
 		for (i = 0; i < byteArray.length; i += 1) {
+			height = 255 + byteArray[i];
 			ctx.fillStyle = colors[i % colors.length];
-			ctx.fillRect(i * barWidth, canvasHeight - byteArray[i], barWidth, byteArray[i]);
+			ctx.fillRect(i * barWidth, canvasHeight - height, barWidth, height);
 			//ctx.fillRect(i, canvasHeight - byteArray[i], barWidth, 1);
 		}
 	};
