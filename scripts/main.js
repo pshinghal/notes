@@ -11,7 +11,8 @@ require(
 
 			var config = {
 				canvasElementId: "visCanvas",
-				soundUrl: MOZART1_WAV
+				soundUrl: MOZART1_WAV,
+				searchUrl: "localhost:7070/search"
 			};
 			app(config);
 		};

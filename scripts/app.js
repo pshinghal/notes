@@ -25,6 +25,7 @@ define(
 			var sourceNode = null; //audioContext.createBufferSource();
 			var soundBuffer = null;
 			var timerNode = null;
+			var gainNode = null;
 
 			var sampleArray = [];
 			window.samples = sampleArray;
@@ -47,8 +48,8 @@ define(
 				var MIN_JUMP = 1 - NUM_NOTES;
 				var MAX_JUMP = NUM_NOTES - 1;
 				var TOTAL_JUMPS = MAX_JUMP - MIN_JUMP + 1;
-				var WINDOW_SIZE = 4;
-				var INDEX_LENGTH = 3;
+				var WINDOW_SIZE = 3;
+				var INDEX_LENGTH = 2;
 				window.markovModel = {};
 
 				function reduceIndex(indexArray, num) {
@@ -72,8 +73,32 @@ define(
 					window.markovModel[index][windowArray[INDEX_LENGTH]] += 1;
 				}
 
+				function convertModelToProbabilityMatrix() {
+					var i, j, sum;
+					for (i in window.markovModel) {
+						if (window.markovModel.hasOwnProperty(i)) {
+							console.log("reducing " + i);
+							console.log(window.markovModel[i]);
+							sum = 0;
+							for (j in window.markovModel[i]) {
+								if (window.markovModel[i].hasOwnProperty(j)) {
+									sum += window.markovModel[i][j];
+								}
+							}
+							for (j in window.markovModel[i]) {
+								if (window.markovModel[i].hasOwnProperty(j)) {
+									window.markovModel[i][j] /= sum;
+									console.log("reduced to " + window.markovModel[i][j]);
+								}
+							}
+						}
+					}
+				}
+
 				executeSlidingWindow(jumpArray, 4, updateModelWithWindow);
-				console.log("Model created!");
+				console.log("Model created, converting to probability matrix");
+				convertModelToProbabilityMatrix();
+				console.log("converted to prob matrix");
 			}
 
 			function notesToJumps(noteArray) {
@@ -208,14 +233,23 @@ define(
 				sourceNode = audioContext.createBufferSource();
 				analyser = audioContext.createAnalyser();
 				timerNode = audioContext.createJavaScriptNode(BUFFER_SIZE, 1, 1);
+				gainNode = audioContext.createGainNode();
+				window.gain = gainNode;
+
+				window.volume = function (vol) {
+					console.log("Setting gain at " + vol);
+					gainNode.gain.value = vol;
+				};
 
 				sourceNode.buffer = soundBuffer;
 				timerNode.onaudioprocess = analyseAudio;
 
 				sourceNode.connect(analyser);
-				sourceNode.connect(audioContext.destination);
+				sourceNode.connect(gainNode);
+				gainNode.connect(audioContext.destination);
 				analyser.connect(timerNode);
 				timerNode.connect(audioContext.destination);
+				// timerNode.connect(gainNode);
 				console.log("Architecture built");
 				analyser.fftSize = 2048;
 				startAudio();
