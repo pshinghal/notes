@@ -1,7 +1,7 @@
-/*global define:true, webkitAudioContext:true */
+/*global define:true, webkitAudioContext:true, $:true */
 define(
-	["visualization", "noteConverter"],
-	function (visualization, noteConverter) {
+	["visualization", "noteConverter", "utils"],
+	function (visualization, noteConverter, utils) {
 		console.log("In app");
 		return function (config) {
 			console.log("Started App");
@@ -30,6 +30,54 @@ define(
 			var sampleArray = [];
 			window.samples = sampleArray;
 
+			window.add = function (piece, composer, type) {
+				var addData = {
+					markovModel: JSON.stringify(window.markovModel),
+					piece: piece,
+					composer: composer,
+					type: type
+				};
+				var successCallback = function (response) {
+					console.log("Got a response of type " + typeof response);
+					console.log("The server responded:");
+					console.log(response);
+				};
+				var errorCallback = function (e) {
+					console.log("Can't add to server: " + e);
+					console.log(e);
+					window.alert("Can't add!");
+				};
+				console.log("Sending jQ AJAX");
+				$.ajax({
+					type: 'POST',
+					url: config.addUrl,
+					data: addData,
+					success: successCallback,
+					error: errorCallback,
+					dataType: "json"
+				});
+				console.log("Sent!");
+			};
+
+			window.search = function () {
+				function prettyPrintResults(results) {
+					var i;
+					for (i = 0; i < results.byPiece.length; i += 1) {
+						console.log((i + 1) + ". " + results.byPiece[i].piece + " by " + results.byPiece[i].composer + " has similarity = " + results.byPiece[i].similarity);
+					}
+					for (i = 0; i < results.byComposer.length; i += 1) {
+						console.log((i + 1) + ". " + results.byComposer[i].piece + " by " + results.byComposer[i].composer + " has similarity = " + results.byComposer[i].similarity);
+					}
+				}
+				$.ajax({
+					type: 'POST',
+					url: "/search",
+					data: {markovModel: JSON.stringify(window.markovModel)},
+					success: prettyPrintResults,
+					dataType: "json"
+				});
+			};
+
 			function executeSlidingWindow(inputArray, windowSize, func) {
 				var i, j, windowArray;
 				for (i = windowSize - 1; i < inputArray.length; i += 1) {
@@ -42,15 +90,15 @@ define(
 				}
 			}
 
-			function getProbabilityModel(jumpArray) {
+			function getProbabilityModel(jumpArray, order) {
 				// Representative of an octave in noteIndexes:
 				var NUM_NOTES = 13;
 				var MIN_JUMP = 1 - NUM_NOTES;
 				var MAX_JUMP = NUM_NOTES - 1;
 				var TOTAL_JUMPS = MAX_JUMP - MIN_JUMP + 1;
-				var WINDOW_SIZE = 3;
-				var INDEX_LENGTH = 2;
-				window.markovModel = {};
+				var WINDOW_SIZE = order;
+				var INDEX_LENGTH = WINDOW_SIZE - 1;
+				window.markovModel[order] = {};
 
 				function reduceIndex(indexArray, num) {
 					var i, currNum = 0;
@@ -63,39 +111,39 @@ define(
 
 				function updateModelWithWindow(windowArray) {
 					var index = reduceIndex(windowArray, INDEX_LENGTH);
-					if (!window.markovModel[index]) {
-						window.markovModel[index] = {};
+					if (!window.markovModel[order][index]) {
+						window.markovModel[order][index] = {};
 					}
-					if (!window.markovModel[index][windowArray[INDEX_LENGTH]]) {
-						window.markovModel[index][windowArray[INDEX_LENGTH]] = 0;
+					if (!window.markovModel[order][index][windowArray[INDEX_LENGTH]]) {
+						window.markovModel[order][index][windowArray[INDEX_LENGTH]] = 0;
 					}
 					console.log("Updating index " + index + ", subIndex " + INDEX_LENGTH + " of " + JSON.stringify(windowArray));
-					window.markovModel[index][windowArray[INDEX_LENGTH]] += 1;
+					window.markovModel[order][index][windowArray[INDEX_LENGTH]] += 1;
 				}
 
 				function convertModelToProbabilityMatrix() {
 					var i, j, sum;
-					for (i in window.markovModel) {
-						if (window.markovModel.hasOwnProperty(i)) {
-							console.log("reducing " + i);
-							console.log(window.markovModel[i]);
+					for (i in window.markovModel[order]) {
+						if (window.markovModel[order].hasOwnProperty(i)) {
+							//console.log("reducing " + i);
+							//console.log(window.markovModel[order][i]);
 							sum = 0;
-							for (j in window.markovModel[i]) {
-								if (window.markovModel[i].hasOwnProperty(j)) {
-									sum += window.markovModel[i][j];
+							for (j in window.markovModel[order][i]) {
+								if (window.markovModel[order][i].hasOwnProperty(j)) {
+									sum += window.markovModel[order][i][j];
 								}
 							}
-							for (j in window.markovModel[i]) {
-								if (window.markovModel[i].hasOwnProperty(j)) {
-									window.markovModel[i][j] /= sum;
-									console.log("reduced to " + window.markovModel[i][j]);
+							for (j in window.markovModel[order][i]) {
+								if (window.markovModel[order][i].hasOwnProperty(j)) {
+									window.markovModel[order][i][j] /= sum;
+									//console.log("reduced to " + window.markovModel[order][i][j]);
 								}
 							}
 						}
 					}
 				}
 
-				executeSlidingWindow(jumpArray, 4, updateModelWithWindow);
+				executeSlidingWindow(jumpArray, WINDOW_SIZE, updateModelWithWindow);
 				console.log("Model created, converting to probability matrix");
 				convertModelToProbabilityMatrix();
 				console.log("converted to prob matrix");
@@ -157,7 +205,9 @@ define(
 				var jumpArray = notesToJumps(noteArray);
 				console.log("Got jump array:");
 				console.log(jumpArray);
-				getProbabilityModel(jumpArray);
+				window.markovModel = {};
+				getProbabilityModel(jumpArray, 2);
+				getProbabilityModel(jumpArray, 3);
 			}
 
 			// # The frequency bin contains negative floats
