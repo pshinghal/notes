@@ -62,11 +62,13 @@ define(
 			window.search = function () {
 				function prettyPrintResults(results) {
 					var i;
+					console.log("Pieces:");
 					for (i = 0; i < results.byPiece.length; i += 1) {
 						console.log((i + 1) + ". " + results.byPiece[i].piece + " by " + results.byPiece[i].composer + " has similarity = " + results.byPiece[i].similarity);
 					}
+					console.log("Composers:");
 					for (i = 0; i < results.byComposer.length; i += 1) {
-						console.log((i + 1) + ". " + results.byComposer[i].piece + " by " + results.byComposer[i].composer + " has similarity = " + results.byComposer[i].similarity);
+						console.log((i + 1) + ". " + results.byComposer[i].composer + " has similarity = " + results.byComposer[i].similarity);
 					}
 				}
 				$.ajax({
@@ -85,7 +87,7 @@ define(
 					for (j = windowSize - 1; j >= 0; j -= 1) {
 						windowArray.push(inputArray[i - j]);
 					}
-					console.log("Created windowArray " + JSON.stringify(windowArray));
+					//console.log("Created windowArray " + JSON.stringify(windowArray));
 					func(windowArray);
 				}
 			}
@@ -117,7 +119,7 @@ define(
 					if (!window.markovModel[order][index][windowArray[INDEX_LENGTH]]) {
 						window.markovModel[order][index][windowArray[INDEX_LENGTH]] = 0;
 					}
-					console.log("Updating index " + index + ", subIndex " + INDEX_LENGTH + " of " + JSON.stringify(windowArray));
+					//console.log("Updating index " + index + ", subIndex " + INDEX_LENGTH + " of " + JSON.stringify(windowArray));
 					window.markovModel[order][index][windowArray[INDEX_LENGTH]] += 1;
 				}
 
